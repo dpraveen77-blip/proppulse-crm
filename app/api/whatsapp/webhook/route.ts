@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 
+// Forces Vercel to compile this as a live dynamic serverless function
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Incoming WhatsApp Webhook:', JSON.stringify(body, null, 2));
+
     return new Response(JSON.stringify({ status: 'ok' }), {
       status: 200,
       headers: { 'content-type': 'application/json' },
