@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const WHATSAPP_TOKEN = process.env.WHATSAPP_PERMANENT_TOKEN;
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
+const VERIFY_TOKEN = 'proppulse_secure_token_123';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
