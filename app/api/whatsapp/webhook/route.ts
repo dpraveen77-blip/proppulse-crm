@@ -1,25 +1,33 @@
 import { NextRequest } from 'next/server';
 
-// Forces Vercel to compile this as a live dynamic serverless function
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
+  try {
+    // Parse URL using standard Web API for 100% reliable query parameter extraction
+    const url = new URL(request.url);
 
-  const mode = searchParams.get('hub.mode');
-  const token = searchParams.get('hub.verify_token');
-  const challenge = searchParams.get('hub.challenge');
+    const mode = url.searchParams.get('hub.mode')?.trim();
+    const token = url.searchParams.get('hub.verify_token')?.trim();
+    const challenge = url.searchParams.get('hub.challenge')?.trim();
 
-  const VERIFY_TOKEN = 'proppulse_secure_token_123';
+    const VERIFY_TOKEN = 'proppulse_secure_token_123';
 
-  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    return new Response(challenge, {
-      status: 200,
-      headers: { 'content-type': 'text/plain' },
-    });
+    // Verify token and mode match Meta requirements
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      console.log('Meta Webhook Verified Successfully!');
+      return new Response(challenge || '', {
+        status: 200,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+
+    console.warn(`Webhook verification failed. Received token: "${token}", Expected: "${VERIFY_TOKEN}"`);
+    return new Response('Forbidden', { status: 403 });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    return new Response('Internal Error', { status: 500 });
   }
-
-  return new Response('Forbidden', { status: 403 });
 }
 
 export async function POST(request: NextRequest) {
@@ -29,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return new Response(JSON.stringify({ status: 'ok' }), {
       status: 200,
-      headers: { 'content-type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     return new Response('Internal Error', { status: 500 });
