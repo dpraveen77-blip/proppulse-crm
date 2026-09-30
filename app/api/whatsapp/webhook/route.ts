@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -10,11 +12,9 @@ export async function GET(request: NextRequest) {
   const VERIFY_TOKEN = 'proppulse_secure_token_123';
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('WEBHOOK_VERIFIED');
-    // Return plain text challenge (NOT JSON or quoted string)
     return new Response(challenge, {
       status: 200,
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'content-type': 'text/plain' },
     });
   }
 
@@ -24,11 +24,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Incoming WhatsApp Webhook:', JSON.stringify(body, null, 2));
-
-    return NextResponse.json({ status: 'ok' }, { status: 200 });
+    return new Response(JSON.stringify({ status: 'ok' }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
   } catch (error) {
-    console.error('Error processing webhook:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return new Response('Internal Error', { status: 500 });
   }
 }
