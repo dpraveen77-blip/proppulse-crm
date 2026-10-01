@@ -33,40 +33,58 @@ export async function POST(request: NextRequest) {
     if (message) {
       const phone = contact?.wa_id || message?.from;
       const fullName = contact?.profile?.name || 'Unknown Lead';
-      const messageText = message?.text?.body || message?.caption || '';
+      const messageText = message?.text?.body || message?.caption || 'Media/No text';
 
       console.log(`Processing inbound lead: ${fullName} (${phone}) - "${messageText}"`);
 
       if (phone) {
-        // Upsert Lead
-        const { data: leadData, error: leadError } = await supabaseAdmin
+        // 1. Check if lead already exists
+        const { data: existingLead } = await supabaseAdmin
           .from('leads')
-          .upsert(
-            {
-              phone: phone,
-              full_name: fullName,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'phone' }
-          )
-          .select()
+          .select('id')
+          .eq('phone', phone)
           .maybeSingle();
 
-        if (leadError) {
-          console.error('Supabase Lead Insert Error:', leadError);
-        } else if (leadData && messageText) {
-          // Insert Message
-          const { error: msgError } = await supabaseAdmin.from('messages').insert({
-            lead_id: leadData.id || null,
+        let leadId = existingLead?.id;
+
+        if (!existingLead) {
+          // 2. Insert new lead
+          const { data: newLead, error: leadError } = await supabaseAdmin
+            .from('leads')
+            .insert({
+              phone: phone,
+              full_name: fullName,
+              status: 'NEW_LEAD',
+            })
+            .select('id')
+            .single();
+
+          if (leadError) {
+            console.error('Lead Insert Error:', leadError);
+          } else {
+            leadId = newLead?.id;
+          }
+        } else {
+          // 3. Update timestamp for existing lead
+          await supabaseAdmin
+            .from('leads')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('phone', phone);
+        }
+
+        // 4. Insert message
+        const { error: msgError } = await supabaseAdmin
+          .from('messages')
+          .insert({
+            lead_id: leadId || null,
             direction: 'INBOUND',
             message_text: messageText,
           });
 
-          if (msgError) {
-            console.error('Supabase Message Insert Error:', msgError);
-          } else {
-            console.log('SUCCESS: Lead and Message stored in Supabase!');
-          }
+        if (msgError) {
+          console.error('Message Insert Error:', msgError);
+        } else {
+          console.log('SUCCESS: Stored message in Supabase!');
         }
       }
     }
