@@ -35,16 +35,16 @@ export async function POST(request: NextRequest) {
 
     if (message && contact) {
       const phone = contact.wa_id;
-      const name = contact.profile?.name || 'Unknown Lead';
+      const fullName = contact.profile?.name || 'Unknown Lead';
       const messageText = message.text?.body || '';
 
-      console.log(`Processing Lead: ${name} (${phone}) - Text: ${messageText}`);
+      console.log(`Processing Lead: ${fullName} (${phone}) - Text: ${messageText}`);
 
-      // 1. Upsert Lead record in Supabase
+      // 1. Upsert Lead record in Supabase using 'full_name'
       const { data: leadData, error: leadError } = await supabaseAdmin
         .from('leads')
         .upsert(
-          { phone, name, updated_at: new Date().toISOString() },
+          { phone, full_name: fullName, updated_at: new Date().toISOString() },
           { onConflict: 'phone' }
         )
         .select()
