@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
       console.log(`Processing inbound lead: ${fullName} (${cleanPhone}) - "${messageText}"`);
 
       if (cleanPhone) {
-        // 1. Check if lead already exists (checks both with and without leading '+')
+        // 1. Check if lead already exists (supports exact match, leading '+', and wildcard substring)
         const { data: existingLead } = await supabaseAdmin
           .from('leads')
           .select('id')
-          .or(`phone.eq.${cleanPhone},phone.eq.+${cleanPhone}`)
+          .or(`phone.eq.${cleanPhone},phone.eq.+${cleanPhone},phone.like.%${cleanPhone}`)
           .maybeSingle();
 
         let leadId = existingLead?.id;
