@@ -31,28 +31,31 @@ export async function POST(request: NextRequest) {
     const message = value?.messages?.[0];
 
     if (message) {
-      const phone = contact?.wa_id || message?.from;
+      const rawPhone = contact?.wa_id || message?.from;
       const fullName = contact?.profile?.name || 'Unknown Lead';
       const messageText = message?.text?.body || message?.caption || 'Media/No text';
 
-      console.log(`Processing inbound lead: ${fullName} (${phone}) - "${messageText}"`);
+      // Clean phone number (strip '+' and non-numeric characters)
+      const cleanPhone = rawPhone ? rawPhone.replace(/\D/g, '') : null;
 
-      if (phone) {
-        // 1. Check if lead already exists
+      console.log(`Processing inbound lead: ${fullName} (${cleanPhone}) - "${messageText}"`);
+
+      if (cleanPhone) {
+        // 1. Check if lead already exists (checks both with and without leading '+')
         const { data: existingLead } = await supabaseAdmin
           .from('leads')
           .select('id')
-          .eq('phone', phone)
+          .or(`phone.eq.${cleanPhone},phone.eq.+${cleanPhone}`)
           .maybeSingle();
 
         let leadId = existingLead?.id;
 
         if (!existingLead) {
-          // 2. Insert new lead
+          // 2. Insert new lead using cleaned phone string
           const { data: newLead, error: leadError } = await supabaseAdmin
             .from('leads')
             .insert({
-              phone: phone,
+              phone: cleanPhone,
               full_name: fullName,
               status: 'NEW_LEAD',
             })
@@ -69,10 +72,10 @@ export async function POST(request: NextRequest) {
           await supabaseAdmin
             .from('leads')
             .update({ updated_at: new Date().toISOString() })
-            .eq('phone', phone);
+            .eq('id', leadId);
         }
 
-        // 4. Insert message
+        // 4. Insert inbound message linked to lead ID
         const { error: msgError } = await supabaseAdmin
           .from('messages')
           .insert({
@@ -84,7 +87,7 @@ export async function POST(request: NextRequest) {
         if (msgError) {
           console.error('Message Insert Error:', msgError);
         } else {
-          console.log('SUCCESS: Stored message in Supabase!');
+          console.log(`SUCCESS: Stored message in Supabase for lead ${leadId}!`);
         }
       }
     }
