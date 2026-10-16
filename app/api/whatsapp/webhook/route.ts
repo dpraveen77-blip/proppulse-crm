@@ -29,7 +29,30 @@ export async function POST(request: NextRequest) {
     const value = body.entry?.[0]?.changes?.[0]?.value;
     const contact = value?.contacts?.[0];
     const message = value?.messages?.[0];
+    const statusUpdate = value?.statuses?.[0];
 
+    // A. Handle Delivery & Read Status Updates from Meta
+    if (statusUpdate) {
+      const wamid = statusUpdate.id;
+      const newStatus = statusUpdate.status; // 'sent', 'delivered', or 'read'
+
+      console.log(`Status update received for ${wamid}: ${newStatus}`);
+
+      if (wamid) {
+        const { error } = await supabaseAdmin
+          .from('messages')
+          .update({ status: newStatus })
+          .eq('wamid', wamid);
+
+        if (error) {
+          console.error('Error updating message status:', error);
+        }
+      }
+
+      return NextResponse.json({ status: 'ok' }, { status: 200 });
+    }
+
+    // B. Handle Inbound Messages
     if (message) {
       const rawPhone = contact?.wa_id || message?.from;
       const fullName = contact?.profile?.name || 'Unknown Lead';
@@ -82,6 +105,8 @@ export async function POST(request: NextRequest) {
             lead_id: leadId || null,
             direction: 'INBOUND',
             message_text: messageText,
+            wamid: message.id || null,
+            status: 'read',
           });
 
         if (msgError) {
