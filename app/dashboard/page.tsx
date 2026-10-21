@@ -362,7 +362,7 @@ export default function Dashboard() {
             placeholder="Search by name or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full border rounded-lg px-3 py-1.5 text-xs bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border rounded-lg px-3 py-1.5 text-xs bg-white text-slate-900 placeholder:text-slate-400 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -416,7 +416,7 @@ export default function Dashboard() {
                   value={selectedLead.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
                   disabled={updatingStatus}
-                  className="border rounded-lg px-3 py-1.5 text-xs font-semibold bg-gray-50 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="border rounded-lg px-3 py-1.5 text-xs font-semibold bg-gray-50 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer text-gray-800"
                 >
                   {STATUS_OPTIONS.map((status) => (
                     <option key={status} value={status}>
@@ -502,7 +502,7 @@ export default function Dashboard() {
                   placeholder={`Reply to ${selectedLead.full_name || selectedLead.phone}...`}
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
-                  className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 border rounded-lg px-4 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="submit"
@@ -535,7 +535,7 @@ export default function Dashboard() {
                   value={newLabel}
                   onChange={(e) => setNewLabel(e.target.value)}
                   required
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -546,7 +546,7 @@ export default function Dashboard() {
                   onChange={(e) => setNewText(e.target.value)}
                   required
                   rows={3}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div className="flex justify-end gap-2 mt-2">
